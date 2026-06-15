@@ -32,7 +32,7 @@ Telegram ──HTTPS──> Прокси ──HTTPS──> РФ-сервер
 
 ```bash
 git clone <repo-url>
-cd telegram-proxy-bridge
+cd api-telegram-proxy-bridge
 ./generate-certs.sh
 ```
 
