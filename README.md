@@ -21,7 +21,7 @@ Telegram ──HTTPS──> Прокси ──HTTPS──> РФ-сервер
 | Метод | Путь | Описание |
 |-------|------|----------|
 | `GET, POST, ...` | `/api/{path}` | Прокси РФ → Telegram. `path` = `bot<token>/sendMessage` и т.д. |
-| `POST` | `/webhook/{token}` | Прокси Telegram → РФ. Форвардит тело запроса на `rf_server_url` |
+| `POST` | `/webhook/{token}` | Прокси Telegram → РФ. Форвардит тело на `rf_server_url` |
 | `GET` | `/health` | Проверка здоровья |
 
 Аутентификация: header `X-Proxy-Auth` с секретным ключом из конфига.
@@ -33,15 +33,19 @@ Telegram ──HTTPS──> Прокси ──HTTPS──> РФ-сервер
 ```bash
 git clone <repo-url>
 cd api-telegram-proxy-bridge
-./generate-certs.sh
+./generate-certs.sh <ВНЕШНИЙ_IP_СЕРВЕРА>
 ```
+
+Сертификат генерируется с CN = IP сервера и SAN, чтобы Telegram его принял.
 
 ### 2. Настроить `config.yaml`
 
 ```yaml
-auth_key: "мой-секретный-ключ"
-rf_server_url: "https://мой-рф-сервер.ру"
+auth_key: "случайная-строка"
+rf_server_url: "https://твой-рф-сервер.ру/полный/путь/вебхука"
 ```
+
+`rf_server_url` — полный URL, на который прокси будет форвардить вебхуки (вместе с путём).
 
 ### 3. Запустить
 
@@ -49,16 +53,38 @@ rf_server_url: "https://мой-рф-сервер.ру"
 docker compose up -d
 ```
 
+### 4. Установить вебхук для бота
+
+Вебхук устанавливается **через сам прокси** (прямой доступ к `api.telegram.org` из РФ заблокирован):
+
+```bash
+curl -k -X POST "https://<IP_ПРОКСИ>:443/api/bot<TOKEN>/setWebhook" \
+  -H "X-Proxy-Auth: <auth_key>" \
+  -F "url=https://<IP_ПРОКСИ>:443/webhook/<TOKEN>" \
+  -F "certificate=@certs/cert.pem"
+```
+
+Параметр `certificate` обязателен — Telegram не доверяет self-signed сертификату без него.
+
+### 5. Проверить статус вебхука
+
+```bash
+curl -k "https://<IP_ПРОКСИ>:443/api/bot<TOKEN>/getWebhookInfo" \
+  -H "X-Proxy-Auth: <auth_key>"
+```
+
+В ответе должно быть `has_custom_certificate: true` и `pending_update_count: 0`.
+
 ## Использование
 
 ### Из РФ-сервера
 
-Отправляйте POST-запросы на прокси с заголовком `X-Proxy-Auth`:
+Отправляйте запросы любого метода (GET, POST, ...) на прокси с заголовком `X-Proxy-Auth`:
 
 ```
-POST https://<IP_прокси>:443/api/bot<TOKEN>/sendMessage
+POST https://<IP_ПРОКСИ>:443/api/bot<TOKEN>/sendMessage
 Content-Type: application/json
-X-Proxy-Auth: мой-секретный-ключ
+X-Proxy-Auth: <auth_key>
 
 {"chat_id": 123, "text": "Hello"}
 ```
@@ -67,19 +93,24 @@ SSL verification отключить на стороне клиента.
 
 ### Вебхуки от Telegram
 
-При установке вебхука укажите:
+Telegram отправляет апдейты на `https://<IP_ПРОКСИ>:443/webhook/<TOKEN>`.
+Прокси форвардит тело запроса на `rf_server_url` из конфига.
 
-```
-https://<IP_прокси>:443/webhook/<TOKEN>
-```
+## Если сертификат протух или сменился IP
 
-Прокси форварднёт тело запроса на `rf_server_url` из конфига.
+```bash
+cd /opt/telegram-proxy
+rm -f certs/cert.pem certs/key.pem
+./generate-certs.sh <НОВЫЙ_IP>
+docker compose up -d --build
+# Переустановить вебхук с новым сертификатом
+```
 
 ## Требования
 
 - Docker + Docker Compose v2
 - Открытый порт 443 на сервере
-- Ubuntu/Debian (инструкция для других ОС может отличаться)
+- Ubuntu/Debian
 
 ## Файлы
 
