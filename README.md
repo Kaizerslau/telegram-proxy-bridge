@@ -20,7 +20,7 @@ Telegram ──HTTPS──> Прокси ──HTTPS──> РФ-сервер
 
 | Метод | Путь | Описание |
 |-------|------|----------|
-| `POST` | `/api/{path}` | Прокси РФ → Telegram. `path` = `bot<token>/sendMessage` и т.д. |
+| `GET, POST, ...` | `/api/{path}` | Прокси РФ → Telegram. `path` = `bot<token>/sendMessage` и т.д. |
 | `POST` | `/webhook/{token}` | Прокси Telegram → РФ. Форвардит тело запроса на `rf_server_url` |
 | `GET` | `/health` | Проверка здоровья |
 

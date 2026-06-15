@@ -37,7 +37,7 @@ def strip_hop_headers(headers: dict) -> dict:
     return {k: v for k, v in headers.items() if k.lower() not in hop}
 
 
-@app.post("/api/{path:path}")
+@app.api_route("/api/{path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
 async def proxy_to_telegram(path: str, request: Request):
     auth = request.headers.get("X-Proxy-Auth")
     if auth != settings.auth_key:
@@ -56,7 +56,7 @@ async def proxy_to_telegram(path: str, request: Request):
         headers["content-type"] = ct
 
     try:
-        resp = await telegram_client.post(url, content=body, headers=headers)
+        resp = await telegram_client.request(request.method, url, content=body, headers=headers)
     except httpx.RequestError as e:
         logger.error("Telegram request failed: %s", e)
         return JSONResponse(
