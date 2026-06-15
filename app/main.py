@@ -47,8 +47,8 @@ async def proxy_to_telegram(path: str, request: Request):
 
     body = await request.body()
     url = f"{TELEGRAM_API}/{path}"
-    if request.url.query_string:
-        url += f"?{request.url.query_string.decode()}"
+    if request.url.query:
+        url += f"?{request.url.query}"
 
     headers = {}
     ct = request.headers.get("content-type")
