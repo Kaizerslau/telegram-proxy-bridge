@@ -7,9 +7,9 @@
 ## Архитектура
 
 ```
-РФ-сервер (n8n) ──HTTPS──> Прокси ──HTTPS──> api.telegram.org
-                                     │
-Telegram ──HTTPS──> Прокси ──HTTPS──> РФ-сервер (n8n)
+РФ-сервер ──HTTPS──> Прокси ──HTTPS──> api.telegram.org
+                                 │
+Telegram ──HTTPS──> Прокси ──HTTPS──> РФ-сервер
 ```
 
 - **FastAPI (Python)** — лёгкий backend
@@ -51,16 +51,19 @@ docker compose up -d
 
 ## Использование
 
-### Из РФ-сервера (n8n)
+### Из РФ-сервера
 
-В HTTP Request ноде указывайте:
+Отправляйте POST-запросы на прокси с заголовком `X-Proxy-Auth`:
 
 ```
-URL: https://<IP_прокси>:443/api/bot<TOKEN>/sendMessage
-Header: X-Proxy-Auth: мой-секретный-ключ
+POST https://<IP_прокси>:443/api/bot<TOKEN>/sendMessage
+Content-Type: application/json
+X-Proxy-Auth: мой-секретный-ключ
+
+{"chat_id": 123, "text": "Hello"}
 ```
 
-SSL verification отключить в настройках ноды.
+SSL verification отключить на стороне клиента.
 
 ### Вебхуки от Telegram
 
