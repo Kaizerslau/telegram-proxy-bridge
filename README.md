@@ -21,7 +21,7 @@ Telegram ──HTTPS──> Прокси ──HTTPS──> РФ-сервер
 | Метод | Путь | Описание |
 |-------|------|----------|
 | `POST` | `/api/{path}` | Прокси РФ → Telegram. `path` = `bot<token>/sendMessage` и т.д. |
-| `POST` | `/webhook/{token}` | Прокси Telegram → РФ. Форвардит на `rf_server_url/webhook/{token}` |
+| `POST` | `/webhook/{token}` | Прокси Telegram → РФ. Форвардит тело запроса на `rf_server_url` |
 | `GET` | `/health` | Проверка здоровья |
 
 Аутентификация: header `X-Proxy-Auth` с секретным ключом из конфига.
@@ -73,7 +73,7 @@ SSL verification отключить на стороне клиента.
 https://<IP_прокси>:443/webhook/<TOKEN>
 ```
 
-Прокси форварднёт запрос на `https://мой-рф-сервер.ру/webhook/<TOKEN>`.
+Прокси форварднёт тело запроса на `rf_server_url` из конфига.
 
 ## Требования
 

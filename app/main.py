@@ -79,7 +79,7 @@ async def proxy_webhook(token: str, request: Request):
     if ct:
         headers["content-type"] = ct
 
-    url = f"{settings.rf_server_url}/webhook/{token}"
+    url = settings.rf_server_url
 
     try:
         resp = await rf_client.post(url, content=body, headers=headers)
