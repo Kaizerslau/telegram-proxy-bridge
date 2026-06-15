@@ -1,0 +1,2 @@
+auth_key: "секретный-ключ"
+rf_server_url: "https://rf-server.example.com"

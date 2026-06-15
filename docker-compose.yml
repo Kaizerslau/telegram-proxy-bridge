@@ -1,0 +1,9 @@
+services:
+  proxy:
+    build: .
+    ports:
+      - "443:443"
+    volumes:
+      - ./certs:/certs:ro
+      - ./config.yaml:/app/config.yaml:ro
+    restart: unless-stopped
